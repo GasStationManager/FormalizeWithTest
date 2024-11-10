@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "formalizewithtest"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+litellm = "^1.49.1"
+jsonlines = "^4.0.0"
+datasets = "^3.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
