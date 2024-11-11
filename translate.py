@@ -4,11 +4,14 @@ import jsonlines
 import json
 import time
 
-model_choice='qwen'
+model_choice='gpt'
 
 models={
   'sonnet':'anthropic/claude-3-5-sonnet-20241022',
-  'qwen':'ollama/hf.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF:IQ4_XS'
+  'qwen':'ollama/hf.co/bartowski/Qwen2.5.1-Coder-7B-Instruct-GGUF:Q5_K_M',
+  'deepseek':'ollama/hf.co/bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF:Q5_K_M',
+  'o1-mini':'o1-mini',
+  'gpt':'gpt-4o'
 }
 
 content_template="""
@@ -37,7 +40,12 @@ If you need to use arr[i] to access element of array or list at index i, and you
 that i is a valid index, you may use arr[i]? notation to return an Option value, 
 or arr[i]! notation to leave the proof obligation to the future prover.
 
-Format your output as a JSON Object:
+Format your output as a JSON Object.
+
+You are encouraged to reason step by step; put your thoughts in the <Thinking> ... </Thinking> tag,
+then put the final (JSON) output in the <Result> ... </Result> tag. For example:
+
+<Result>
 {{
   "function_signature": "def add (a b:Nat):Nat",
   "property_name": "add_prop",
@@ -45,14 +53,12 @@ Format your output as a JSON Object:
   "theorem_signature": "theorem add_spec (a b:Nat): add_prop a b (add a b)",
   "tests": ["1 1 2", "1 2 3"]
 }}
+</Result>
 
 Any helper function definitions goes in "property_def".
 
 If your Lean 4 code contains newline characters, please properly escape them when converting to json.
 Similarly, if your test cases contain string data, escape the quote characters.
-
-You are encouraged to reason step by step; put your thoughts in the <Thinking> ... </Thinking> tag,
-then put the final (JSON) output in the <Result> ... </Result> tag.
 
 START OF INPUT
 {input_json}
@@ -62,6 +68,13 @@ START OF OUTPUT
 """
 
 
+
+def extract_quote (output, start_str='```json',end_str='```'):
+        if start_str in output:
+            res=output.split(start_str)[1].split(end_str)[0]
+            return res
+        else:
+            return output
 
 def translate(inp_json, test_field='"input" and "output"'):
   response = completion(
@@ -73,8 +86,15 @@ def translate(inp_json, test_field='"input" and "output"'):
     max_tokens=4096
   )
   resp=response.choices[0].message.content
-  print (resp)
-  return json.loads(resp.split('</Result>')[0].split('<Result>')[1])
+  print('Response:')
+  print(resp)
+  try:
+    resp=extract_quote(resp, '<Result>','</Result>')
+    resp=extract_quote(resp)
+  except Exception as e:
+    print("Error extracting solution:\n",e)
+  #return json.loads(resp.split('</Result>')[0].split('<Result>')[1])
+  return json.loads(resp)
 
 
 

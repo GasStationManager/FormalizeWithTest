@@ -13,6 +13,11 @@ OPTIONS="""set_option maxRecDepth 1024\n"""
 
 def verify(prop_name: str,prop_def: str, test_case: str, deps: str='') -> dict:
   print(prop_def)
+  if '\\n' in prop_def and '\\"' not in prop_def:
+    prop_def=prop_def.replace ('\\n', '\n')
+    print('fixed newlines\n'+prop_def)
+  if prop_name in test_case:
+    test_case=test_case.replace(prop_name, '')
   prop_exp = prop_name + ' ' + test_case
   prop_proof=PROOF.format(prop_name=prop_name)
   true_thm="theorem prop_true: "+prop_exp+prop_proof+"\n"
@@ -24,9 +29,9 @@ def verify(prop_name: str,prop_def: str, test_case: str, deps: str='') -> dict:
         truef=os.path.join(tmpdir, "true.lean")
         falsef=os.path.join(tmpdir, "false.lean")
         with open(truef, "w") as f:
-            f.write(deps+'\n'+OPTIONS+'\n'+prop_def+'\n\n'+true_thm)
+            f.write(deps+'\n'+prop_def+'\n\n'+OPTIONS+'\n\n'+true_thm)
         with open(falsef, "w") as f:
-            f.write(deps+'\n'+OPTIONS+'\n'+prop_def+'\n\n'+false_thm)
+            f.write(deps+'\n'+prop_def+'\n\n'+OPTIONS+'\n\n'+false_thm)
 
         for fname in [truef, falsef]:
             print ('proving '+fname)
@@ -61,6 +66,10 @@ def verify_row(row_obj: dict)->dict:
     out_obj=copy.deepcopy(row_obj)
     out_obj['test_results']=[]
     out_obj['status']='pass'
+    if 'tests' not in row_obj:
+      print('Error:the row does not contain a tests field')
+      out_obj['status']='unknown'
+      return out_obj 
     for t in row_obj['tests']:
       r=verify(prop_name,prop_def,t, deps)
       out_obj['test_results'].append(r)
