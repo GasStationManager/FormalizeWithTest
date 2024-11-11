@@ -4,6 +4,13 @@ import jsonlines
 import json
 import time
 
+model_choice='qwen'
+
+models={
+  'sonnet':'anthropic/claude-3-5-sonnet-20241022',
+  'qwen':'ollama/hf.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF:IQ4_XS'
+}
+
 content_template="""
 You are given a JSON object describing a coding problem.
 The "description" field contains the problem description. The {test_field} field contains test cases.
@@ -58,7 +65,7 @@ START OF OUTPUT
 
 def translate(inp_json, test_field='"input" and "output"'):
   response = completion(
-    model="anthropic/claude-3-5-sonnet-20241022", #0620,   #claude-3-sonnet-20240229
+    model=models[model_choice],
     messages=[
         {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
         {"role": "user", "content": content_template.format(input_json=inp_json, test_field=test_field)}
