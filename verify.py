@@ -7,23 +7,36 @@ import json
 import jsonlines
 import copy
 
-PROOF=""":=by simp[{prop_name}];repeat (first|rfl|decide|omega|simp|contradiction|assumption|constructor|split|intros)"""
+TAC="""repeat (first | rfl | decide | omega | tauto | aesop | simp_all | simp_arith | linarith | bv_decide | contradiction | assumption | constructor | split)"""
+
+PROOF=""":=by 
+simp[{prop_name}] 
+try {TAC}
+try norm_num
+try ring_nf
+try intros
+try {TAC}
+"""
 
 OPTIONS="""set_option maxRecDepth 1024\n"""
 
 def verify(prop_name: str,prop_def: str, test_case: str, deps: str='') -> dict:
   print(prop_def)
-  if '\\n' in prop_def and '\\"' not in prop_def:
-    prop_def=prop_def.replace ('\\n', '\n')
-    print('fixed newlines\n'+prop_def)
+
+  #don't need the following if we check for syntax before
+  #if '\\n' in prop_def and '\\"' not in prop_def:
+  #  prop_def=prop_def.replace ('\\n', '\n')
+  #  print('fixed newlines\n'+prop_def)
   if prop_name in test_case:
     test_case=test_case.replace(prop_name, '')
   prop_exp = prop_name + ' ' + test_case
-  prop_proof=PROOF.format(prop_name=prop_name)
+  prop_proof=PROOF.format(prop_name=prop_name, TAC=TAC)
   true_thm="theorem prop_true: "+prop_exp+prop_proof+"\n"
   print(true_thm)
   false_thm="theorem prop_false: Not ({}) {}\n".format(prop_exp,prop_proof)
   print(false_thm)
+  prop_def =prop_def.replace ('def', '@[simp] def')
+  if len(deps)==0: deps='import Mathlib\nimport Aesop'
   with tempfile.TemporaryDirectory() as tmpdir:
         # Create a temporary Lean file
         truef=os.path.join(tmpdir, "true.lean")

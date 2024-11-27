@@ -9,6 +9,14 @@ for the purpose of generating training data for coding AIs.
 It contains exploration of ideas from Section 3, Project 3 of the essay.
 In particular, automated verification of translated specifications using the test cases from the origional problem.
 
+# Installation
+
+1. Install Poetry
+2. Install Lean 4
+3. Clone the repository
+4. Clone LeanTool
+5. Install Mathlib
+
 # Files
 
 - `load_data.py`: loads from the `hackercupai/hackercup` data set from HuggingFace.

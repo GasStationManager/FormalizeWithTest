@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-litellm = "^1.49.1"
+litellm = "^1.52.15"
 jsonlines = "^4.0.0"
 datasets = "^3.0.1"
 
