@@ -9,7 +9,7 @@ readme = "README.md"
 python = "^3.10"
 litellm = "^1.52.15"
 jsonlines = "^4.0.0"
-datasets = "^3.0.1"
+datasets = "^3.1.0"
 
 
 [build-system]

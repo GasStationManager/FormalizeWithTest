@@ -7,7 +7,7 @@ import json
 import jsonlines
 import copy
 
-TAC="""repeat (first | rfl | decide | omega | tauto | aesop | simp_all | simp_arith | linarith | bv_decide | contradiction | assumption | constructor | split)"""
+TAC="""repeat (first | rfl | decide | omega | tauto | simp_all | simp_arith | linarith | contradiction | assumption | bv_decide | aesop | smt | constructor | split)"""
 
 PROOF=""":=by 
 simp[{prop_name}] 
@@ -36,7 +36,7 @@ def verify(prop_name: str,prop_def: str, test_case: str, deps: str='') -> dict:
   false_thm="theorem prop_false: Not ({}) {}\n".format(prop_exp,prop_proof)
   print(false_thm)
   prop_def =prop_def.replace ('def', '@[simp] def')
-  if len(deps)==0: deps='import Mathlib\nimport Aesop'
+  if len(deps)==0: deps='import Mathlib\nimport Aesop\nimport Smt'
   with tempfile.TemporaryDirectory() as tmpdir:
         # Create a temporary Lean file
         truef=os.path.join(tmpdir, "true.lean")
@@ -49,7 +49,7 @@ def verify(prop_name: str,prop_def: str, test_case: str, deps: str='') -> dict:
         for fname in [truef, falsef]:
             print ('proving '+fname)
             # Run Lean 4 on the temporary file
-            result = subprocess.run(["lake","env","lean", fname], capture_output=True, text=True)
+            result = subprocess.run(["lake","env","lean","--load-dynlib=libstdc++.so.6", "--load-dynlib=.lake/packages/cvc5/.lake/build/lib/libcvc5-1.so", fname], capture_output=True, text=True)
         
             # Check if Lean 4 succeeded (return code 0 means success)
             is_correct = result.returncode == 0

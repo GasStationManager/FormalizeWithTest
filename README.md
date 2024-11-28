@@ -19,8 +19,9 @@ In particular, automated verification of translated specifications using the tes
 
 # Files
 
-- `load_data.py`: loads from the `hackercupai/hackercup` data set from HuggingFace.
-  Alternatively, can use the [code_contests](https://huggingface.co/datasets/deepmind/code_contests) data set. Writes output in a JSONL file. 
+- `load_data.py`: loads from the `hackercupai/hackercup` data set from HuggingFace. Loads data from a specific year (default 2023).
+Writes output in a JSONL file. Usage: `poetry run python load_data.py output.jsonl 2023`
+  Alternatively, can use the [code_contests](https://huggingface.co/datasets/deepmind/code_contests) data set. 
 - `translate.py`: calls an LLM to translate each problem statement into formal specification in Lean, and test cases into Lean data that can be plugged in.
   Uses LiteLLM, which allows you to plug in different LLMs; from commercial APIs including OpenAI and Anthropic, to open source models which you can serve via vLLM or ollama.
 - `verify.py`: tries to verify each translated formal specification by plugging in test cases, and proving/disproving each of the resulting propositions. 
