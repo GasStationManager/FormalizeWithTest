@@ -8,7 +8,7 @@ import traceback
 from LeanTool.leantool import interactive_lean_check,check_lean_code
 
 model_choice='sonnet'
-SAMPLE_TESTS=True
+SAMPLE_TESTS=False
 
 models={
   'sonnet':'anthropic/claude-3-5-sonnet-20241022',
@@ -30,7 +30,7 @@ but to give a complete formal specification of the requirements.
 The formal specification should further consist of 
 1. a definition of a property (a function returning a Prop) that takes in the input and output values, and specify that the output value is a correct solution of the problem given the inputs. It should not call the function. 
 2. the theorem statement which references the property and the function, and states that for all input values, the output value produced by the function satisfy the above property.
-Furthermore, reformat the test cases in the {test_field} field in the input JSON to be a list of strings that 
+Furthermore, reformat the test cases in the {test_field} field in the input JSON to be a list of dicts with fields "input" and "output" that 
 can be plugged into the property definition. 
 Do not try to implement the function or to prove the theorem.
 
@@ -39,7 +39,7 @@ def add (a b:Nat):Nat
 And the theorem statement would be: 
 def add_prop (a b out:Nat):= a+b=out 
 theorem add_spec (a b:Nat): add_prop a b (add a b)
-And the test cases should be in the format "1 1 2"
+And the test cases should be in the format [{{"input":"1 1", "output":"2"}}, {{"input":"1 2", "output":"3"}}]
 Make sure that each test case can be plugged into the property, e.g. add_prop 1 1 2 should be valid Lean 4 code that evaluates to a Prop.
 Omit test cases that involve very large numbers (> 1000), or large amount of input data. Each problem should containt at least one test case.
 
@@ -74,7 +74,7 @@ then put the final (JSON) output in the <Result> ... </Result> tag. For example:
   "property_name": "add_prop",
   "property_def": "def add_prop (a b out:Nat):= a+b=out",
   "theorem_signature": "theorem add_spec (a b:Nat): add_prop a b (add a b)",
-  "tests": ["1 1 2", "1 2 3"]
+  "tests": [{{"input":"1 1","output": "2"}}, {{"input":"1 2","output": "3"}}]
 }}
 </Result>
 
@@ -113,7 +113,8 @@ import Mathlib
         return {'success':False, 'error':'No test cases'}
 
     for i,tc in enumerate(output['tests']):
-        code+=f"def test_{i}:={output['property_name']} {tc}\n"
+        code+=f"def test_{i}:={output['property_name']} {tc['input']} {tc['output']}\n"
+    print(code)
     return check_lean_code(code)
 
 async def translate(inp_json, test_field='"input" and "output"'):
@@ -129,6 +130,7 @@ async def translate(inp_json, test_field='"input" and "output"'):
         return ret
     else:
         print (chk)
+        #print (ret)
         return None
   else:
     print (res)

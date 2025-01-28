@@ -30,13 +30,14 @@ LLMPROVER=None # set to e.g. 'sonnet' to use models['sonnet']
 PROMPT="""Prove the theorem statement by completing the body of its signature below. Your answer should not repeat the signature; i.e. should start with := \n"""
 
 
-async def verify(prop_name: str,prop_def: str, test_case: str, deps: str='') -> dict:
+async def verify(prop_name: str,prop_def: str, test_case: dict, deps: str='') -> dict:
   print(prop_def)
 
   #don't need the following if we check for syntax before
   #if '\\n' in prop_def and '\\"' not in prop_def:
   #  prop_def=prop_def.replace ('\\n', '\n')
   #  print('fixed newlines\n'+prop_def)
+  test_case = test_case['input']+' '+test_case['output']
   if prop_name in test_case:
     test_case=test_case.replace(prop_name, '')
   prop_exp = prop_name + ' ' + test_case
