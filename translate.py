@@ -8,6 +8,7 @@ import traceback
 from LeanTool.leantool import interactive_lean_check,check_lean_code
 
 model_choice='sonnet'
+SAMPLE_TESTS=True
 
 models={
   'sonnet':'anthropic/claude-3-5-sonnet-20241022',
@@ -41,6 +42,13 @@ theorem add_spec (a b:Nat): add_prop a b (add a b)
 And the test cases should be in the format "1 1 2"
 Make sure that each test case can be plugged into the property, e.g. add_prop 1 1 2 should be valid Lean 4 code that evaluates to a Prop.
 Omit test cases that involve very large numbers (> 1000), or large amount of input data. Each problem should containt at least one test case.
+
+If the problem description specifies restrictions on the input arguments, include these properties in the function and theorem signatures as input arguments as well.
+E.g. for dividing two rational numbers a and b, where b is greater than zero:
+def div (a b:Rat) (h:b>0):Rat
+def div_prop (a b:Rat)(h:b>0)(out:Rat):= a/b=out
+theorem div_spec (a b:Rat)(h:b>0): div_prop a b h (div a b h)
+And test cases will need to provide proof that the condition is satisfied, like "6 2 (by decide) 3"
 
 Again, in the body of the property definition do not call the function.
 The body of the property definition should be complete: no 'sorry's, and if you need to make helper
@@ -139,8 +147,10 @@ async def main():
         time.sleep(1)
         if 'test_field' in kwa:
           inp_jo={kwa['test_field']: jo[kwa['test_field']]}
-        else:
+        elif SAMPLE_TESTS:
           inp_jo={'input': jo['sample_input'], 'output':jo['sample_output']}
+        else:
+          inp_jo={'input': jo['input'], 'output':jo['output']}
         if 'statement' in jo:
           inp_jo['description']=jo['statement']
         else:
