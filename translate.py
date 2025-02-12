@@ -99,7 +99,7 @@ def extract_quote (output, start_str='```json',end_str='```'):
         else:
             return output
 
-def verify_output(output:dict):
+async def verify_output(output:dict):
     code=f"""
 import Mathlib
 {output['function_signature']}
@@ -115,7 +115,7 @@ import Mathlib
     for i,tc in enumerate(output['tests']):
         code+=f"def test_{i}:={output['property_name']} {tc['input']} {tc['output']}\n"
     print(code)
-    return check_lean_code(code)
+    return await check_lean_code(code)
 
 async def translate(inp_json, test_field='"input" and "output"'):
   msg= content_template.format(input_json=inp_json, test_field=test_field)
@@ -125,7 +125,7 @@ async def translate(inp_json, test_field='"input" and "output"'):
     ret=extract_quote(ret)
     #print (ret)
     ret= json.loads(ret)
-    chk=verify_output(ret)
+    chk=await verify_output(ret)
     if chk['success']:
         return ret
     else:
